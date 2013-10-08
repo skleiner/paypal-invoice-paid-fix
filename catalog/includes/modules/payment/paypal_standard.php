@@ -284,7 +284,7 @@
                           'business' => MODULE_PAYMENT_PAYPAL_STANDARD_ID,
                           'amount' => $this->format_raw($order->info['total'] - $order->info['shipping_cost'] - $order->info['tax']),
                           'currency_code' => $currency,
-                          'invoice' => substr($cart_PayPal_Standard_ID, strpos($cart_PayPal_Standard_ID, '-')+1),
+                          'invoice' => 'A' .  substr($cart_PayPal_Standard_ID, strpos($cart_PayPal_Standard_ID, '-')+1),
                           'custom' => $customer_id,
                           'no_note' => '1',
                           'notify_url' => tep_href_link('ext/modules/payment/paypal/standard_ipn.php', '', 'SSL', false, false),

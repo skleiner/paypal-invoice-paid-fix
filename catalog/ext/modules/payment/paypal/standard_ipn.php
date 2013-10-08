@@ -79,15 +79,17 @@
 
     curl_close($ch);
   }
+  $invoice_id = substr($HTTP_POST_VARS['invoice'],1);
+
 
   if ($result == 'VERIFIED') {
-    if (isset($HTTP_POST_VARS['invoice']) && is_numeric($HTTP_POST_VARS['invoice']) && ($HTTP_POST_VARS['invoice'] > 0)) {
-      $order_query = tep_db_query("select orders_status, currency, currency_value from " . TABLE_ORDERS . " where orders_id = '" . $HTTP_POST_VARS['invoice'] . "' and customers_id = '" . (int)$HTTP_POST_VARS['custom'] . "'");
+    if (isset($HTTP_POST_VARS['invoice_id']) && is_numeric($HTTP_POST_VARS['invoice_id']) && ($HTTP_POST_VARS['invoice_id'] > 0)) {
+      $order_query = tep_db_query("select orders_status, currency, currency_value from " . TABLE_ORDERS . " where orders_id = '" . $HTTP_POST_VARS['invoice_id'] . "' and customers_id = '" . (int)$HTTP_POST_VARS['custom'] . "'");
       if (tep_db_num_rows($order_query) > 0) {
         $order = tep_db_fetch_array($order_query);
 
         if ($order['orders_status'] == MODULE_PAYMENT_PAYPAL_STANDARD_PREPARE_ORDER_STATUS_ID) {
-          $sql_data_array = array('orders_id' => $HTTP_POST_VARS['invoice'],
+          $sql_data_array = array('orders_id' => $HTTP_POST_VARS['invoice_id'],
                                   'orders_status_id' => MODULE_PAYMENT_PAYPAL_STANDARD_PREPARE_ORDER_STATUS_ID,
                                   'date_added' => 'now()',
                                   'customer_notified' => '0',
@@ -96,10 +98,10 @@
           tep_db_perform(TABLE_ORDERS_STATUS_HISTORY, $sql_data_array);
 
 
-          tep_db_query("update " . TABLE_ORDERS . " set orders_status = '" . (MODULE_PAYMENT_PAYPAL_STANDARD_ORDER_STATUS_ID > 0 ? (int)MODULE_PAYMENT_PAYPAL_STANDARD_ORDER_STATUS_ID : (int)DEFAULT_ORDERS_STATUS_ID) . "', last_modified = now() where orders_id = '" . (int)$HTTP_POST_VARS['invoice'] . "'");
+          tep_db_query("update " . TABLE_ORDERS . " set orders_status = '" . (MODULE_PAYMENT_PAYPAL_STANDARD_ORDER_STATUS_ID > 0 ? (int)MODULE_PAYMENT_PAYPAL_STANDARD_ORDER_STATUS_ID : (int)DEFAULT_ORDERS_STATUS_ID) . "', last_modified = now() where orders_id = '" . (int)$HTTP_POST_VARS['invoice_id'] . "'");
         }
 
-        $total_query = tep_db_query("select value from " . TABLE_ORDERS_TOTAL . " where orders_id = '" . $HTTP_POST_VARS['invoice'] . "' and class = 'ot_total' limit 1");
+        $total_query = tep_db_query("select value from " . TABLE_ORDERS_TOTAL . " where orders_id = '" . $HTTP_POST_VARS['invoice_id'] . "' and class = 'ot_total' limit 1");
         $total = tep_db_fetch_array($total_query);
 
         $comment_status = $HTTP_POST_VARS['payment_status'] . ' (' . ucfirst($HTTP_POST_VARS['payer_status']) . '; ' . $currencies->format($HTTP_POST_VARS['mc_gross'], false, $HTTP_POST_VARS['mc_currency']) . ')';
@@ -114,7 +116,7 @@
           $comment_status .= '; PayPal transaction value (' . tep_output_string_protected($HTTP_POST_VARS['mc_gross']) . ') does not match order value (' . number_format($total['value'] * $order['currency_value'], $currencies->get_decimal_places($order['currency'])) . ')';
         }
 
-        $sql_data_array = array('orders_id' => $HTTP_POST_VARS['invoice'],
+        $sql_data_array = array('orders_id' => $HTTP_POST_VARS['invoice_id'],
                                 'orders_status_id' => (MODULE_PAYMENT_PAYPAL_STANDARD_ORDER_STATUS_ID > 0 ? (int)MODULE_PAYMENT_PAYPAL_STANDARD_ORDER_STATUS_ID : (int)DEFAULT_ORDERS_STATUS_ID),
                                 'date_added' => 'now()',
                                 'customer_notified' => '0',
